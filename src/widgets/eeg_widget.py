@@ -106,16 +106,6 @@ class EegWidget(pg.GraphicsLayoutWidget):
     def channel_count(self):
         return self._n_channels
 
-    def channel_plot(self, index):
-        if index < 0 or index >= self._n_channels:
-            raise IndexError(f"channel index {index} out of range (0-{self._n_channels - 1})")
-        return self._plots[index]
-
-    def channel_color(self, index):
-        if index < 0 or index >= self._n_channels:
-            raise IndexError(f"channel index {index} out of range (0-{self._n_channels - 1})")
-        return CET_R3_DEFAULT[index % len(CET_R3)]
-
     def update_data(self, data: np.ndarray):
         n_ch, n_samples = data.shape
         ch_count = min(n_ch, self._n_channels)
@@ -140,16 +130,3 @@ class EegWidget(pg.GraphicsLayoutWidget):
 
             if len(y) > 0:
                 self._curves[i].setData(x[-len(y):], y)
-
-    def __getitem__(self, index):
-        return self.channel_plot(index)
-
-    def __len__(self):
-        return self._n_channels
-
-    def __iter__(self):
-        for i in range(self._n_channels):
-            yield self._plots[i]
-
-    def plots(self):
-        return iter(self)
