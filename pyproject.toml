@@ -1,0 +1,13 @@
+[project]
+name = "neuroworkbench-2"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "brainflow>=5.15.0",
+    "numpy>=2.4.6",
+    "pyqtgraph>=0.14.0",
+    "pyserial>=3.5",
+    "pyside6>=6.11.1",
+]
