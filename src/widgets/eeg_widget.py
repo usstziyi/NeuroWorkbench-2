@@ -23,7 +23,9 @@ class EegWidget(pg.GraphicsLayoutWidget):
         self._plots = {}
         self._curves = {}
         self._n_channels = n_channels
-        self._buffer_size = 5000
+        self._sampling_rate = 250
+        self._time_window = 5.0
+        self._buffer_size = int(self._sampling_rate * self._time_window)
         self._ring_buffers = {}
 
         for i in range(n_channels):
@@ -47,15 +49,58 @@ class EegWidget(pg.GraphicsLayoutWidget):
 
             if i < n_channels - 1:
                 plot.hideAxis("bottom")
+            else:
+                plot.setLabel("bottom", "时长(s)")
+                plot.getAxis("bottom").autoSIPrefix = False
 
             self._plots[i] = plot
 
+        # 环形缓冲区当前写入位置
         self._write_pos = 0
+        # 已接收的总样本数（用于判断缓冲区是否已填满）
         self._total_samples = 0
 
     def set_y_range(self, value):
         for plot in self._plots.values():
             plot.setYRange(-value, value)
+
+    def set_time_window(self, value):
+        self._time_window = value
+        self._resize_buffers()
+
+    def set_sampling_rate(self, value):
+        self._sampling_rate = value
+        self._resize_buffers()
+
+    def _resize_buffers(self):
+        new_size = int(self._sampling_rate * self._time_window)
+        if new_size == self._buffer_size:
+            return
+
+        old_size = self._buffer_size
+        self._buffer_size = new_size
+
+        total = min(self._total_samples, old_size)
+        keep = min(total, new_size)
+
+        for ch in self._ring_buffers:
+            old = self._ring_buffers[ch]
+            if total == 0:
+                self._ring_buffers[ch] = np.zeros(new_size, dtype=np.float64)
+                continue
+
+            if total <= old_size:
+                y = old[:total]
+            else:
+                start = self._write_pos
+                y = np.concatenate([old[start:], old[:start]])
+
+            latest = y[-keep:]
+            buf = np.zeros(new_size, dtype=np.float64)
+            buf[:keep] = latest
+            self._ring_buffers[ch] = buf
+
+        self._write_pos = keep
 
     @property
     def channel_count(self):
