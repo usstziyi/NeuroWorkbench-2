@@ -1,6 +1,7 @@
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QGroupBox,
+    QMessageBox,
     QPushButton,
     QStyleFactory,
     QVBoxLayout,
@@ -8,7 +9,14 @@ from PySide6.QtWidgets import (
 )
 
 import serial.tools.list_ports
+from brainflow import BoardIds, BoardShim
 from pyqtgraph.parametertree import Parameter, ParameterTree
+
+_DEVICE_MAP = {
+    "Simulated": BoardIds.SYNTHETIC_BOARD,
+    "OpenBCI Cyton": BoardIds.CYTON_BOARD,
+    "OpenBCI Cyton+Desin": BoardIds.CYTON_DAISY_BOARD,
+}
 
 
 class SettingWidget(QWidget):
@@ -90,12 +98,15 @@ class SettingWidget(QWidget):
         btn_group = QGroupBox("采集控制")
         btn_layout = QVBoxLayout(btn_group)
         self.btn_scan = QPushButton("扫描串口")
+        self.btn_info = QPushButton("设备信息")
         self.btn_start = QPushButton("开始采集")
         self.btn_stop = QPushButton("停止采集")
         self.btn_record = QPushButton("开始记录")
+     
         self.btn_stop.setEnabled(False)
         self.btn_record.setEnabled(False)
         btn_layout.addWidget(self.btn_scan)
+        btn_layout.addWidget(self.btn_info)
         btn_layout.addWidget(self.btn_start)
         btn_layout.addWidget(self.btn_stop)
         btn_layout.addWidget(self.btn_record)
@@ -106,6 +117,7 @@ class SettingWidget(QWidget):
         self.btn_start.clicked.connect(self.acquisition_started.emit)
         self.btn_stop.clicked.connect(self.acquisition_stopped.emit)
         self.btn_record.clicked.connect(self.recording_started.emit)
+        self.btn_info.clicked.connect(self._show_device_info)
         self.params.child("显示设置", "UI 主题").sigValueChanged.connect(
             lambda _, v: self.theme_changed.emit(v)
         )
@@ -122,3 +134,18 @@ class SettingWidget(QWidget):
         else:
             port_param.setLimits([])
             port_param.setValue("")
+
+    def _show_device_info(self):
+        device_name = self.params.child("设备选择", "设备名称").value()
+        board_id = _DEVICE_MAP.get(device_name)
+        if board_id is None:
+            QMessageBox.warning(self, "错误", f"未知设备: {device_name}")
+            return
+
+        try:
+            descr = BoardShim.get_board_descr(board_id)
+            lines = [f"{key}: {value}" for key, value in descr.items()]
+            text = "\n".join(lines)
+            QMessageBox.information(self, f"设备信息 - {device_name}", text)
+        except Exception as e:
+            QMessageBox.critical(self, "错误", f"获取设备信息失败:\n{e}")
