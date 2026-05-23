@@ -29,8 +29,9 @@ class EegWidget(pg.GraphicsLayoutWidget):
         for i in range(n_channels):
             color = CET_R3_DEFAULT[i % len(CET_R3)]
             plot = self.addPlot(row=i, col=0)
-            plot.setLabel("left", f"CH{i + 1}", color=color)
-            plot.getAxis("left").setWidth(40)
+            plot.setLabel("left", f"CH{i + 1}(μV)")
+            plot.getAxis("left").setWidth(60)
+            plot.getAxis("left").autoSIPrefix = False
             plot.setDownsampling(auto=True, mode="peak")
             plot.setClipToView(True)
             plot.addLine(y=0, pen=pg.mkPen((255, 255, 255, 60), width=1, style=pg.QtCore.Qt.PenStyle.DashLine))
@@ -51,6 +52,10 @@ class EegWidget(pg.GraphicsLayoutWidget):
 
         self._write_pos = 0
         self._total_samples = 0
+
+    def set_y_range(self, value):
+        for plot in self._plots.values():
+            plot.setYRange(-value, value)
 
     @property
     def channel_count(self):

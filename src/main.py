@@ -18,7 +18,7 @@ from brainflow_controller import BrainFlowController
 from widgets.fft_widget import FftWidget
 from widgets.setting_widget import SettingWidget
 from widgets.eeg_widget import EegWidget
-_PARAMS_VERSION = 2
+_PARAMS_VERSION = 3
 
 
 class MainWindow(QMainWindow):
@@ -32,6 +32,7 @@ class MainWindow(QMainWindow):
         self._controller = BrainFlowController()
 
         self._init_docks()
+        self._connect_param_signals()
         self._setup_menubar()
         self._setup_statusbar()
         self._connect_controller_signals()
@@ -152,8 +153,8 @@ class MainWindow(QMainWindow):
         )
 
     def _on_acquisition_started(self):
-        device_name = self.params.child("设备设置", "设备类型").value()
-        serial_port = self.params.child("设备设置", "串口").value()
+        device_name = self.params.child("设备选择", "设备类型").value()
+        serial_port = self.params.child("设备选择", "串口").value()
         self._controller.connect(device_name, serial_port=serial_port)
         self._controller.start_stream()
         self._set_light_color("#00c853")
@@ -200,6 +201,14 @@ class MainWindow(QMainWindow):
         else:
             self._set_light_color("#4a0000")
         self._blink_on = not self._blink_on
+
+    def _connect_param_signals(self):
+        y_range_param = self.params.child("显示设置", "Y轴范围 (μV)")
+        y_range_param.sigValueChanged.connect(self._on_y_range_changed)
+        self._on_y_range_changed(y_range_param, y_range_param.value())
+
+    def _on_y_range_changed(self, param, value):
+        self.eeg_widget.set_y_range(value)
 
     def _connect_controller_signals(self):
         self._controller.data_ready.connect(self._on_data_ready)

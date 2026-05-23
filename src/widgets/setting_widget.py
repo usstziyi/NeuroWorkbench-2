@@ -29,7 +29,7 @@ class SettingWidget(QWidget):
 
         children = [
             {
-                "name": "设备设置",
+                "name": "设备选择",
                 "type": "group",
                 "children": [
                     {
@@ -77,7 +77,7 @@ class SettingWidget(QWidget):
                         "value": "Fusion" if "Fusion" in QStyleFactory.keys() else QStyleFactory.keys()[0],
                     },
                     {"name": "时间窗口 (s)", "type": "float", "value": 5, "limits": [1, 30]},
-                    {"name": "Y轴范围 (μV)", "type": "float", "value": 200, "limits": [10, 1000]},
+                    {"name": "Y轴范围 (μV)", "type": "float", "value": 200, "limits": [10, 1000], "step": 10},
                 ],
             },
         ]
@@ -113,7 +113,7 @@ class SettingWidget(QWidget):
     def _scan_ports(self):
         ports = serial.tools.list_ports.comports()
         port_names = [p.device for p in sorted(ports)]
-        port_param = self.params.child("设备设置", "串口")
+        port_param = self.params.child("设备选择", "串口")
         current_value = port_param.value()
         if port_names:
             port_param.setLimits(port_names)
