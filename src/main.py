@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
 
     def _init_docks(self):
         # 左下角区域归属给左侧 dock
-        # self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
+        self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
 
         self.left_dock = QDockWidget("控制面板")
         self.left_dock.setObjectName("left_dock")

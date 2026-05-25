@@ -114,9 +114,9 @@ class SettingWidget(QWidget):
 
     def _connect_signals(self):
         self.btn_scan.clicked.connect(self._scan_ports)
-        self.btn_start.clicked.connect(self.acquisition_started.emit)
-        self.btn_stop.clicked.connect(self.acquisition_stopped.emit)
-        self.btn_record.clicked.connect(self.recording_started.emit)
+        self.btn_start.clicked.connect(self.acquisition_started)
+        self.btn_stop.clicked.connect(self.acquisition_stopped)
+        self.btn_record.clicked.connect(self.recording_started)
         self.btn_info.clicked.connect(self._show_device_info)
         self.params.child("显示设置", "UI 主题").sigValueChanged.connect(
             lambda _, v: self.theme_changed.emit(v)
